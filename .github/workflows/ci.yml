@@ -9,31 +9,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
+      with:
+        submodules: recursive
+
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y g++ make gfortran
 
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
-        rm -f CMakeCache.txt
-        rm -rf CMakeFiles
-        make clean
-        make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1
-    
+        # Чистый checkout, никаких "make clean" не нужно.
+        # Если вдруг в репозитории мусор от старых сборок:
+        # git clean -fdx || true
+        make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1 -j$(nproc)
+        # Проверим, что статическая библиотека собралась:
+        ls -la libopenblas*.a || (echo "libopenblas.a not found!" && exit 1)
+
     - name: Run TestBlas
       run: |
-        # Переходим в папку с тестами
         cd TrpoTest/TestBlas
-        # Теперь OpenBLAS уже скомпилирован в ../OpenBLAS/
         make all
         ./tests/main_test
-    
+
     - name: Test performance
       run: |
-        # Переходим в папку с лабой
         cd cblas_6lab
-        # Компилируем, указывая пути к уже собранному OpenBLAS
-        # -I../OpenBLAS для cblas.h, -L../OpenBLAS для libopenblas.a
-        g++ main.cpp -o main -I../OpenBLAS -L../OpenBLAS -lopenblas -lpthread -lm
+        # Путь к заголовкам: ../OpenBLAS (там cblas.h)
+        # Путь к библиотеке: ../OpenBLAS (там libopenblas.a)
+        g++ main.cpp -o main \
+          -I../OpenBLAS \
+          -L../OpenBLAS \
+          -lopenblas -lpthread -lm
         ./main
