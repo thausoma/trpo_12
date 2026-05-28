@@ -11,28 +11,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install compilers
-      run: sudo apt-get install -y g++ make gfortran
-    
-    - name: Debug directory structure
+    - name: Install dependencies
       run: |
-        echo "Current directory:"
-        pwd
-        echo "Content of current directory:"
-        ls -R
-        echo "Content of OpenBLAS directory:"
-        ls -la OpenBLAS || echo "OpenBLAS directory does not exist or is inaccessible"
+        sudo apt-get update
+        sudo apt-get install -y g++ make gfortran libopenblas-dev
 
-    - name: Build OpenBLAS
-      run: |
-        cd OpenBLAS
-        chmod +x c_check f_check || true
-        make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1
-        cd ..
-    
     - name: Test BLAS functions
       run: |
         cd TrpoTest/TestBlas
+        # Предполагаем, что твой Makefile настроен на линковку с -lopenblas
         make all
         chmod +x tests/main_test
         make run
@@ -40,6 +27,6 @@ jobs:
     - name: Test performance
       run: |
         cd cblas_6lab
-        g++ main.cpp -o main
-        chmod +x main
+        # Добавляем -lopenblas для линковки с установленной библиотекой
+        g++ main.cpp -o main -lopenblas
         ./main
