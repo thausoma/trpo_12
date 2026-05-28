@@ -13,15 +13,10 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y g++ make gfortran
 
-    - name: Diagnose file structure
+    - name: Install dependencies
       run: |
-        pwd
-        ls -F
-        ls -la OpenBLAS/
-        if [ -f "OpenBLAS/Makefile" ]; then
-        else
-          echo "ФАЙЛА MAKEFILE НЕТ В ПАПКЕ OpenBLAS"
-        fi
+        sudo apt-get update
+        sudo apt-get install -y g++ make gfortran gcc
     
     - name: Run TestBlas
       run: |
