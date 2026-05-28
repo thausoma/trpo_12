@@ -1,0 +1,2 @@
+/home/kirill/Desktop/12lab/OpenBLAS/CMakeFiles/CheckFortran/CMakeFiles/edit_cache.dir
+/home/kirill/Desktop/12lab/OpenBLAS/CMakeFiles/CheckFortran/CMakeFiles/rebuild_cache.dir
