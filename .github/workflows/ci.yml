@@ -1,0 +1,36 @@
+name: CI for blas
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install compilers
+      run: sudo apt-get install -y g++ make gfortran
+    
+    - name: Build OpenBLAS
+      run: |
+        cd OpenBLAS
+        chmod +x c_check f_check || true
+        make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1
+        cd ..
+    
+    - name: Test BLAS functions
+      run: |
+        cd TrpoTest/TestBlas
+        make all
+        chmod +x tests/main_test
+        make run
+    
+    - name: Test performance
+      run: |
+        cd cblas_6lab
+        g++ main.cpp -o main
+        chmod +x main
+        ./main
