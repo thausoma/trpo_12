@@ -7,23 +7,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install compilers
+    - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y g++ make gfortran
-    
-    - name: Run Tests
+
+    - name: Build OpenBLAS
       run: |
-        # Собираем всё через твой Makefile
+        cd OpenBLAS
+        make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1
+    
+    - name: Run TestBlas
+      run: |
         cd TrpoTest/TestBlas
-        make run
+        # Вызываем make, но теперь он увидит, что libopenblas.a уже есть
+        make all
+        ./tests/main_test
     
     - name: Test performance
       run: |
         cd cblas_6lab
-        # Важно: здесь тоже нужны флаги линковки с OpenBLAS
-        # Предполагаем, что main.cpp использует заголовки из папки OpenBLAS
+        # -I../OpenBLAS позволяет находить cblas.h, -L../OpenBLAS указывает на libopenblas.a
         g++ main.cpp -o main -I../OpenBLAS -L../OpenBLAS -lopenblas -lpthread -lm
         ./main
