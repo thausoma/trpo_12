@@ -13,21 +13,25 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y g++ make gfortran
 
-    - name: Install dependencies
+    - name: Build OpenBLAS
       run: |
-        sudo apt-get update
-        sudo apt-get install -y g++ make gfortran gcc
+        # Собираем OpenBLAS один раз для всего проекта
+        cd OpenBLAS
+        make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1
     
     - name: Run TestBlas
       run: |
+        # Переходим в папку с тестами
         cd TrpoTest/TestBlas
-        # Вызываем make, но теперь он увидит, что libopenblas.a уже есть
+        # Теперь OpenBLAS уже скомпилирован в ../OpenBLAS/
         make all
         ./tests/main_test
     
     - name: Test performance
       run: |
+        # Переходим в папку с лабой
         cd cblas_6lab
-        # -I../OpenBLAS позволяет находить cblas.h, -L../OpenBLAS указывает на libopenblas.a
+        # Компилируем, указывая пути к уже собранному OpenBLAS
+        # -I../OpenBLAS для cblas.h, -L../OpenBLAS для libopenblas.a
         g++ main.cpp -o main -I../OpenBLAS -L../OpenBLAS -lopenblas -lpthread -lm
         ./main
