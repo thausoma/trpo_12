@@ -14,6 +14,15 @@ jobs:
     - name: Install compilers
       run: sudo apt-get install -y g++ make gfortran
     
+    - name: Debug directory structure
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Content of current directory:"
+        ls -R
+        echo "Content of OpenBLAS directory:"
+        ls -la OpenBLAS || echo "OpenBLAS directory does not exist or is inaccessible"
+
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
