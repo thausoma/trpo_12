@@ -15,8 +15,10 @@ jobs:
 
     - name: Build OpenBLAS
       run: |
-        # Собираем OpenBLAS один раз для всего проекта
         cd OpenBLAS
+        rm -f CMakeCache.txt
+        rm -rf CMakeFiles
+        make clean
         make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1
     
     - name: Run TestBlas
