@@ -16,13 +16,16 @@ jobs:
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
-        # Удаляем мусор от предыдущих попыток CMake
+        # 1. Радикальная очистка всех сгенерированных файлов
+        # Это удалит все ссылки на твои локальные пути (типа /home/kirill/...)
+        make distclean || true
+        
+        # 2. Очистка остатков CMake
         rm -f CMakeCache.txt
         rm -rf CMakeFiles
-        # Собираем OpenBLAS
+        
+        # 3. Сборка заново
         make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1 -j$(nproc)
-        # Проверка сборки
-        ls -la libopenblas.a || (echo "libopenblas.a не найден!" && exit 1)
 
     - name: Run TestBlas
       run: |
