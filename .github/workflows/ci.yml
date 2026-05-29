@@ -39,10 +39,15 @@ jobs:
 
     - name: Run TestBlas
       run: |
-        # Создаем симлинк, чтобы Makefile в TestBlas нашел OpenBLAS
-        # Теперь папка ../OpenBLAS внутри TrpoTest будет указывать на корень
-        ln -s ../../OpenBLAS TrpoTest/OpenBLAS
+        # 1. Создаем папку OpenBLAS там, где её ожидает увидеть Makefile (внутри TrpoTest)
+        mkdir -p TrpoTest/OpenBLAS
         
+        # 2. Копируем туда заголовочные файлы и саму библиотеку
+        # Это "обманет" Makefile, который ищет всё внутри ../OpenBLAS
+        cp OpenBLAS/libopenblas.a TrpoTest/OpenBLAS/
+        cp OpenBLAS/*.h TrpoTest/OpenBLAS/
+        
+        # 3. Теперь заходим в папку и запускаем
         cd TrpoTest/TestBlas
         make all
         ./tests/main_test
