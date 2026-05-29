@@ -16,15 +16,23 @@ jobs:
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
-        # 1. Радикальная очистка всех сгенерированных файлов
-        # Это удалит все ссылки на твои локальные пути (типа /home/kirill/...)
-        make distclean || true
-        
-        # 2. Очистка остатков CMake
+        # 1. Удаляем все файлы, которые могли сгенерировать локальные пути
         rm -f CMakeCache.txt
         rm -rf CMakeFiles
+        rm -f cmake_install.cmake
+        rm -f Makefile
+        # Удаляем скрытые файлы CMake, если они есть
+        find . -name "CMakeCache.txt" -type f -delete
+        find . -name "CMakeFiles" -type d -exec rm -rf {} +
         
-        # 3. Сборка заново
+        # 2. Пытаемся собрать. Если Makefile был удален, make выдаст ошибку,
+        # но мы создадим его заново с помощью команды конфигурации.
+        # Если OpenBLAS требует предварительной настройки, используем:
+        if [ ! -f Makefile ]; then
+            echo "Makefile отсутствует, генерируем через cmake..."
+            cmake . -DNO_SHARED=1 -DONLY_CBLAS=1 -DNOFORTRAN=1
+        fi
+        
         make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1 -j$(nproc)
 
     - name: Run TestBlas
