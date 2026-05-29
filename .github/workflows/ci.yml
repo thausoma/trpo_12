@@ -16,18 +16,18 @@ jobs:
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
-        # Очистка от локальных путей
-        rm -f CMakeCache.txt
-        rm -rf CMakeFiles cmake_install.cmake Makefile
-        find . -name "CMakeCache.txt" -type f -delete
-        find . -name "CMakeFiles" -type d -exec rm -rf {} +
+        # ... (очистка остается прежней)
         
-        # Генерация и сборка
+        # Сборка
         if [ ! -f Makefile ]; then
             cmake . -DNO_SHARED=1 -DONLY_CBLAS=1 -DNOFORTRAN=1
         fi
         make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1 -j$(nproc)
-        # Проверка сборки
+        
+        # ИЩЕМ библиотеку и копируем её в корень OpenBLAS, чтобы другие шаги её видели
+        find . -name "libopenblas.a" -exec cp {} . \;
+        
+        # Проверка
         ls -la libopenblas.a || (echo "libopenblas.a не найден!" && exit 1)
 
     - name: Run TestBlas
