@@ -16,18 +16,25 @@ jobs:
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
-        # ... (очистка остается прежней)
+        # 1. УБИВАЕМ ВСЁ, что связано с предыдущими попытками сборки
+        rm -rf CMakeCache.txt CMakeFiles cmake_install.cmake Makefile
         
-        # Сборка
-        if [ ! -f Makefile ]; then
-            cmake . -DNO_SHARED=1 -DONLY_CBLAS=1 -DNOFORTRAN=1
-        fi
+        # 2. Удаляем файлы, которые могли закэшировать локальные пути
+        # Используем find, чтобы найти и убить все скрытые файлы CMake
+        find . -type f -name "CMakeCache.txt" -delete
+        find . -type d -name "CMakeFiles" -exec rm -rf {} +
+        
+        # 3. Принудительная генерация БЕЗ использования старого Makefile
+        # Мы используем cmake для генерации чистого Makefile с путями сервера
+        cmake . -DNO_SHARED=1 -DONLY_CBLAS=1 -DNOFORTRAN=1
+        
+        # 4. Сборка
         make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1 -j$(nproc)
         
-        # ИЩЕМ библиотеку и копируем её в корень OpenBLAS, чтобы другие шаги её видели
+        # 5. Копируем библиотеку в корень
         find . -name "libopenblas.a" -exec cp {} . \;
         
-        # Проверка
+        # 6. Проверка
         ls -la libopenblas.a || (echo "libopenblas.a не найден!" && exit 1)
 
     - name: Run TestBlas
