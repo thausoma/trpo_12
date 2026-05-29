@@ -57,9 +57,9 @@ jobs:
     - name: Test performance
       run: |
         cd cblas_6lab
-        # Компиляция с явным указанием путей к корню проекта
+        # Добавлен флаг -fopenmp для поддержки параллелизма
         g++ main.cpp -o main \
           -I../OpenBLAS \
           -L../OpenBLAS \
-          -lopenblas -lpthread -lm
+          -lopenblas -lpthread -lm -fopenmp
         ./main
