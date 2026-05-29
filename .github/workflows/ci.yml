@@ -39,17 +39,19 @@ jobs:
 
     - name: Run TestBlas
       run: |
-        # 1. Создаем папку OpenBLAS там, где её ожидает увидеть Makefile (внутри TrpoTest)
+        # 1. Создаем папку и копируем файлы
         mkdir -p TrpoTest/OpenBLAS
-        
-        # 2. Копируем туда заголовочные файлы и саму библиотеку
-        # Это "обманет" Makefile, который ищет всё внутри ../OpenBLAS
         cp OpenBLAS/libopenblas.a TrpoTest/OpenBLAS/
         cp OpenBLAS/*.h TrpoTest/OpenBLAS/
         
-        # 3. Теперь заходим в папку и запускаем
+        # 2. Заходим в папку и собираем
         cd TrpoTest/TestBlas
         make all
+        
+        # 3. Добавляем права на исполнение, чтобы не было ошибки 126
+        chmod +x ./tests/main_test
+        
+        # 4. Запускаем
         ./tests/main_test
 
     - name: Test performance
