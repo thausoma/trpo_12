@@ -16,36 +16,34 @@ jobs:
     - name: Build OpenBLAS
       run: |
         cd OpenBLAS
-        # 1. Удаляем все файлы, которые могли сгенерировать локальные пути
+        # Очистка от локальных путей
         rm -f CMakeCache.txt
-        rm -rf CMakeFiles
-        rm -f cmake_install.cmake
-        rm -f Makefile
-        # Удаляем скрытые файлы CMake, если они есть
+        rm -rf CMakeFiles cmake_install.cmake Makefile
         find . -name "CMakeCache.txt" -type f -delete
         find . -name "CMakeFiles" -type d -exec rm -rf {} +
         
-        # 2. Пытаемся собрать. Если Makefile был удален, make выдаст ошибку,
-        # но мы создадим его заново с помощью команды конфигурации.
-        # Если OpenBLAS требует предварительной настройки, используем:
+        # Генерация и сборка
         if [ ! -f Makefile ]; then
-            echo "Makefile отсутствует, генерируем через cmake..."
             cmake . -DNO_SHARED=1 -DONLY_CBLAS=1 -DNOFORTRAN=1
         fi
-        
         make NO_SHARED=1 ONLY_CBLAS=1 NOFORTRAN=1 -j$(nproc)
+        # Проверка сборки
+        ls -la libopenblas.a || (echo "libopenblas.a не найден!" && exit 1)
 
     - name: Run TestBlas
       run: |
+        # Создаем симлинк, чтобы Makefile в TestBlas нашел OpenBLAS
+        # Теперь папка ../OpenBLAS внутри TrpoTest будет указывать на корень
+        ln -s ../../OpenBLAS TrpoTest/OpenBLAS
+        
         cd TrpoTest/TestBlas
-        # Здесь make автоматически подхватит библиотеку из ../OpenBLAS
         make all
         ./tests/main_test
 
     - name: Test performance
       run: |
         cd cblas_6lab
-        # Компиляция с учетом того, что OpenBLAS лежит в ../OpenBLAS
+        # Компиляция с явным указанием путей к корню проекта
         g++ main.cpp -o main \
           -I../OpenBLAS \
           -L../OpenBLAS \
